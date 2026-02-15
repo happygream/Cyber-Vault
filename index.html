@@ -7,6 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Cyber Vault v3.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
         
@@ -190,7 +191,6 @@
         }
 
         .btn::before {
-            pointer-events: none;
             content: '';
             position: absolute;
             top: 0;
@@ -209,7 +209,7 @@
             background: transparent;
             color: #00ff41;
             border-color: #00ff41;
-            width: 31%;
+            width: 100%;
         }
 
         .btn-primary:hover {
@@ -221,7 +221,7 @@
             background: transparent;
             color: #00ccff;
             border-color: #00ccff;
-            margin-right: 14px;
+            margin-right: 10px;
         }
 
         .btn-secondary:hover {
@@ -547,7 +547,7 @@
         .button-group {
             display: flex;
             gap: 10px;
-            margin-top: 39px;
+            margin-top: 20px;
         }
 
         .toggle-auth {
@@ -732,7 +732,6 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             generatePassword();
-            checkSession();
             
             // Setup login form submission
             const loginForm = document.getElementById('loginForm');
@@ -743,14 +742,6 @@
                 });
             }
         });
-
-        function checkSession() {
-            const user = sessionStorage.getItem('user');
-            if (user) {
-                currentUser = JSON.parse(user);
-                showVault();
-            }
-        }
 
         function toggleAuthMode() {
             isRegisterMode = !isRegisterMode;
@@ -786,6 +777,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ username, password })
                 });
                 
@@ -804,25 +796,41 @@
                         document.getElementById('authPassword').value = '';
                     }, 1500);
                 } else {
-                    currentUser = {
-                        id: data.user_id,
-                        username: username,
-                        token: data.token,
-                        masterPassword: password
-                    };
+                    console.log('Login successful, vault_salt:', data.vault_salt);
                     
-                    sessionStorage.setItem('user', JSON.stringify(currentUser));
+                    // Derive encryption key from master password
+                    try {
+                        encryptionKey = await deriveKey(password, data.vault_salt);
+                        console.log('Encryption key derived successfully');
+                    } catch (keyError) {
+                        console.error('Key derivation error:', keyError);
+                        showAlert('authAlert', '> ERROR: ENCRYPTION KEY DERIVATION FAILED', 'error');
+                        return;
+                    }
+                    
+                    currentUser = { username: username };
                     showVault();
                 }
             } catch (error) {
+                console.error('Login error:', error);
                 showAlert('authAlert', '> ERROR: CONNECTION FAILED', 'error');
             }
         }
 
-        function logout() {
+        async function logout() {
+            try {
+                await fetch(API_URL + '/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            
+            encryptionKey = null;
             currentUser = null;
             passwords = [];
-            sessionStorage.removeItem('user');
+            sessionStorage.clear();
             document.getElementById('vaultContainer').classList.remove('active');
             document.getElementById('authForm').classList.add('active');
             document.getElementById('authUsername').value = '';
@@ -840,32 +848,35 @@
             
             try {
                 const response = await fetch(API_URL + '/passwords', {
-                    headers: {
-                        'X-User-ID': currentUser.id.toString()
-                    }
+                    credentials: 'include'
                 });
                 
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        logout();
+                        return;
+                    }
                     throw new Error('Failed to load passwords');
                 }
                 
                 const encryptedPasswords = await response.json();
                 
-                // Decrypt passwords client-side
-                passwords = encryptedPasswords.map(p => ({
+                // Decrypt passwords client-side with Web Crypto
+                passwords = await Promise.all(encryptedPasswords.map(async (p) => ({
                     id: p.id,
                     name: p.name,
                     username: p.username,
-                    password: decrypt(p.encrypted_password),
+                    password: await decryptPassword(p.encrypted_password, p.iv),
                     url: p.url,
                     notes: p.notes,
                     created_at: p.created_at,
                     updated_at: p.updated_at
-                }));
+                })));
                 
                 renderPasswords();
             } catch (error) {
                 console.error('Error loading passwords:', error);
+                document.getElementById('passwordList').innerHTML = '<div style="color: #ff0055; padding: 20px;">Error loading passwords</div>';
             }
         }
 
@@ -933,34 +944,36 @@
             
             const id = document.getElementById('passwordId').value;
             const password = document.getElementById('itemPassword').value;
-            const encryptedPassword = encrypt(password);
-            
-            const data = {
-                name: document.getElementById('itemName').value,
-                username: document.getElementById('itemUsername').value,
-                encrypted_password: encryptedPassword,
-                url: document.getElementById('itemUrl').value,
-                notes: document.getElementById('itemNotes').value
-            };
             
             try {
+                const { encrypted, iv } = await encryptPassword(password);
+                
+                const data = {
+                    name: document.getElementById('itemName').value,
+                    username: document.getElementById('itemUsername').value,
+                    encrypted_password: encrypted,
+                    iv: iv,
+                    url: document.getElementById('itemUrl').value,
+                    notes: document.getElementById('itemNotes').value
+                };
+                
                 let response;
                 if (id) {
                     response = await fetch(`${API_URL}/passwords/${id}`, {
                         method: 'PUT',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-User-ID': currentUser.id.toString()
+                            'Content-Type': 'application/json'
                         },
+                        credentials: 'include',
                         body: JSON.stringify(data)
                     });
                 } else {
                     response = await fetch(`${API_URL}/passwords`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-User-ID': currentUser.id.toString()
+                            'Content-Type': 'application/json'
                         },
+                        credentials: 'include',
                         body: JSON.stringify(data)
                     });
                 }
@@ -968,6 +981,8 @@
                 if (response.ok) {
                     await loadPasswords();
                     closeModal();
+                } else {
+                    alert('Failed to save password');
                 }
             } catch (error) {
                 console.error('Error saving password:', error);
@@ -1098,9 +1113,7 @@
             try {
                 const response = await fetch(`${API_URL}/passwords/${currentPasswordId}`, {
                     method: 'DELETE',
-                    headers: {
-                        'X-User-ID': currentUser.id.toString()
-                    }
+                    credentials: 'include'
                 });
                 
                 if (response.ok) {
@@ -1154,33 +1167,68 @@
             }
         }
 
-        function encrypt(text) {
-            if (!currentUser || !currentUser.masterPassword) return btoa(text);
-            const key = currentUser.masterPassword;
-            let result = '';
-            for (let i = 0; i < text.length; i++) {
-                result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+        // CryptoJS-based encryption (works on HTTP)
+        let encryptionKey = null;
+
+        async function deriveKey(masterPassword, vaultSalt) {
+            try {
+                // Decode base64 salt
+                const saltWordArray = CryptoJS.enc.Base64.parse(vaultSalt);
+                
+                // Derive key using PBKDF2
+                const key = CryptoJS.PBKDF2(masterPassword, saltWordArray, {
+                    keySize: 256/32,
+                    iterations: 250000,
+                    hasher: CryptoJS.algo.SHA256
+                });
+                
+                return key;
+            } catch (error) {
+                console.error('Key derivation error:', error);
+                throw error;
             }
-            return btoa(result);
         }
 
-        function decrypt(encrypted) {
-            if (!currentUser || !currentUser.masterPassword) {
-                console.error('Decrypt error: No current user or master password');
-                return '[NO MASTER KEY]';
-            }
+        async function encryptPassword(text) {
+            if (!encryptionKey) throw new Error('No encryption key');
+            
+            // Generate random IV
+            const iv = CryptoJS.lib.WordArray.random(12);
+            
+            // Encrypt using AES
+            const encrypted = CryptoJS.AES.encrypt(text, encryptionKey, {
+                iv: iv,
+                mode: CryptoJS.mode.CTR,
+                padding: CryptoJS.pad.NoPadding
+            });
+
+            return {
+                encrypted: encrypted.ciphertext.toString(CryptoJS.enc.Base64),
+                iv: iv.toString(CryptoJS.enc.Base64)
+            };
+        }
+
+        async function decryptPassword(encryptedData, ivData) {
+            if (!encryptionKey) throw new Error('No encryption key');
+            
             try {
-                const key = currentUser.masterPassword;
-                const decoded = atob(encrypted);
-                let result = '';
-                for (let i = 0; i < decoded.length; i++) {
-                    result += String.fromCharCode(decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-                }
-                console.log('Decrypted successfully, length:', result.length);
-                return result;
-            } catch (e) {
-                console.error('Decryption error:', e);
-                return '[Decryption Failed]';
+                const iv = CryptoJS.enc.Base64.parse(ivData);
+                const ciphertext = CryptoJS.enc.Base64.parse(encryptedData);
+                
+                const decrypted = CryptoJS.AES.decrypt(
+                    { ciphertext: ciphertext },
+                    encryptionKey,
+                    {
+                        iv: iv,
+                        mode: CryptoJS.mode.CTR,
+                        padding: CryptoJS.pad.NoPadding
+                    }
+                );
+
+                return decrypted.toString(CryptoJS.enc.Utf8);
+            } catch (error) {
+                console.error('Decryption error:', error);
+                return '[DECRYPTION FAILED]';
             }
         }
 
