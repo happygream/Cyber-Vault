@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  cyber-vault:
+    build:
+      context: .
+    container_name: cyber-vault-python
+    ports:
+      - "8080:5000"
+    volumes:
+      - vault-data:/data
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-default-secret-key-change-me}
+      - FLASK_ENV=production
+    restart: unless-stopped
+
+volumes:
+  vault-data:
+    driver: local

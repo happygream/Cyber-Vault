@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Cyber Vault v3.0</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            background: #0a0e27;
+            background-image: 
+                repeating-linear-gradient(0deg, rgba(0, 255, 0, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 255, 0, 0.03) 3px),
+                repeating-linear-gradient(90deg, rgba(0, 255, 0, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 255, 0, 0.03) 3px);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 0%, #0a0e27 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            background: rgba(10, 14, 39, 0.95);
+            border: 2px solid #00ff41;
+            border-radius: 4px;
+            box-shadow: 
+                0 0 20px rgba(0, 255, 65, 0.3),
+                inset 0 0 30px rgba(0, 255, 65, 0.05);
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ff41, transparent);
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(600px); }
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 0.5; }
+            50%, 100% { opacity: 0; }
+        }
+
+        .header {
+            background: linear-gradient(180deg, rgba(0, 255, 65, 0.1) 0%, transparent 100%);
+            color: #00ff41;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 1px solid #00ff41;
+            position: relative;
+        }
+
+        .header::before {
+            content: '> SYSTEM INITIALIZED';
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 10px;
+            opacity: 0.5;
+            animation: blink 1.5s infinite;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            opacity: 0.7;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .auth-form, .vault-container {
+            display: none;
+        }
+
+        .auth-form.active, .vault-container.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #00ff41;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        label::before {
+            content: '> ';
+            color: #00ff41;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="url"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ff41;
+            border-radius: 0;
+            font-size: 14px;
+            color: #00ff41;
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(0, 255, 65, 0.3);
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #00ff41;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: 2px solid;
+            border-radius: 0;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            pointer-events: none;
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 255, 65, 0.2);
+            transition: left 0.3s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: transparent;
+            color: #00ff41;
+            border-color: #00ff41;
+            width: 31%;
+        }
+
+        .btn-primary:hover {
+            background: rgba(0, 255, 65, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #00ccff;
+            border-color: #00ccff;
+            margin-right: 14px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 204, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: #ff0055;
+            border-color: #ff0055;
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 0, 85, 0.1);
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.5);
+        }
+
+        .btn-success {
+            background: transparent;
+            color: #00ff41;
+            border-color: #00ff41;
+        }
+
+        .btn-success:hover {
+            background: rgba(0, 255, 65, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+
+        .vault-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #00ff41;
+        }
+
+        .vault-header h2 {
+            color: #00ff41;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .password-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .password-list::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .password-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #00ff41;
+        }
+
+        .password-list::-webkit-scrollbar-thumb {
+            background: #00ff41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        .password-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #00ff41;
+            border-radius: 0;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .password-item::before {
+            content: '▸';
+            position: absolute;
+            left: -15px;
+            color: #00ff41;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .password-item:hover {
+            background: rgba(0, 255, 65, 0.1);
+            border-color: #00ff41;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+            transform: translateX(10px);
+        }
+
+        .password-item:hover::before {
+            opacity: 1;
+            left: 5px;
+        }
+
+        .password-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .password-item-title {
+            font-weight: 600;
+            color: #00ff41;
+            font-size: 16px;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+        }
+
+        .password-item-username {
+            color: #00ccff;
+            font-size: 12px;
+        }
+
+        .password-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            color: #00ff41;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+
+        .icon-btn:hover {
+            color: #00ff41;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+            transform: scale(1.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(10, 14, 39, 0.98);
+            border: 2px solid #00ff41;
+            border-radius: 0;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.5);
+            position: relative;
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #00ff41;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #00ff41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #00ff41;
+            padding-bottom: 10px;
+        }
+
+        .modal-header h3 {
+            color: #00ff41;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #ff0055;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #ff0055;
+            text-shadow: 0 0 10px rgba(255, 0, 85, 0.8);
+            transform: rotate(90deg);
+        }
+
+        .password-generator {
+            background: rgba(0, 255, 65, 0.05);
+            border: 1px solid #00ff41;
+            border-radius: 0;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .password-generator h4 {
+            color: #00ff41;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .password-display {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #00ff41;
+            border-radius: 0;
+            padding: 12px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            margin-bottom: 12px;
+            word-break: break-all;
+            color: #00ff41;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+        }
+
+        .generator-options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            color: #00ccff;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: #00ff41;
+        }
+
+        .checkbox-group label {
+            color: #00ccff;
+            text-transform: none;
+            font-size: 14px;
+        }
+
+        .checkbox-group label::before {
+            content: '';
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slider-group label {
+            color: #00ccff;
+        }
+
+        .slider-group input[type="range"] {
+            width: 100%;
+            accent-color: #00ff41;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 0;
+            margin-bottom: 20px;
+            border: 1px solid;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 65, 0.1);
+            color: #00ff41;
+            border-color: #00ff41;
+        }
+
+        .alert-error {
+            background: rgba(255, 0, 85, 0.1);
+            color: #ff0055;
+            border-color: #ff0055;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #00ff41;
+            opacity: 0.5;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.5));
+        }
+
+        .empty-state h3 {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 39px;
+        }
+
+        .toggle-auth {
+            text-align: center;
+            margin-top: 20px;
+            color: #00ccff;
+            font-size: 12px;
+        }
+
+        .toggle-auth a {
+            color: #00ff41;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .toggle-auth a:hover {
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+        }
+
+        #viewContent {
+            color: #00ccff;
+        }
+
+        #viewContent strong {
+            color: #00ff41;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        #viewContent div[style*="background"] {
+            background: rgba(0, 0, 0, 0.5) !important;
+            border: 1px solid #00ff41 !important;
+            color: #00ff41 !important;
+        }
+
+        #viewContent a {
+            color: #00ccff !important;
+            text-shadow: 0 0 5px rgba(0, 204, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ CYBER VAULT ⚡</h1>
+            <p>ENCRYPTED PASSWORD STORAGE SYSTEM v3.0.0</p>
+        </div>
+
+        <div class="content">
+            <!-- Login/Register Form -->
+            <div class="auth-form active" id="authForm">
+                <div id="authAlert"></div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="authUsername">Username</label>
+                        <input type="text" id="authUsername" placeholder="> USER IDENTIFIER" autocomplete="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="authPassword">Master Password</label>
+                        <input type="password" id="authPassword" placeholder="> MASTER KEY" autocomplete="current-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="loginBtn">[ ACCESS VAULT ]</button>
+                </form>
+                <div class="toggle-auth">
+                    <span id="toggleText">NEW USER?</span> 
+                    <a onclick="toggleAuthMode()">[ <span id="toggleLink">REGISTER</span> ]</a>
+                </div>
+            </div>
+
+            <!-- Vault Container -->
+            <div class="vault-container" id="vaultContainer">
+                <div class="vault-header">
+                    <h2>[ VAULT ACCESS ]</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-success" onclick="showAddModal()">+ NEW ENTRY</button>
+                        <button class="btn btn-danger" onclick="logout()">[ LOGOUT ]</button>
+                    </div>
+                </div>
+
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="> SEARCH DATABASE..." onkeyup="searchPasswords()">
+                </div>
+
+                <div class="password-list" id="passwordList">
+                    <!-- Password items will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Password Modal -->
+    <div class="modal" id="passwordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">[ ADD ENTRY ]</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+
+            <div class="password-generator">
+                <h4 style="margin-bottom: 12px;">> PASSWORD GENERATOR</h4>
+                <div class="password-display" id="generatedPassword"></div>
+                <div class="generator-options">
+                    <div class="slider-group">
+                        <label>Length: <span id="lengthValue">16</span></label>
+                        <input type="range" id="passwordLength" min="8" max="64" value="16" oninput="updateLength()">
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="includeUppercase" checked>
+                        <label>Uppercase (A-Z)</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="includeLowercase" checked>
+                        <label>Lowercase (a-z)</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="includeNumbers" checked>
+                        <label>Numbers (0-9)</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="includeSymbols" checked>
+                        <label>Symbols (!@#$%)</label>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" style="width: 100%; margin-top: 12px;" onclick="generatePassword()">[ GENERATE ]</button>
+            </div>
+
+            <form id="passwordForm" autocomplete="off">
+                <input type="hidden" id="passwordId">
+                <div class="form-group">
+                    <label for="itemName">Name *</label>
+                    <input type="text" id="itemName" placeholder="> TARGET SYSTEM NAME" autocomplete="off" required>
+                </div>
+                <div class="form-group">
+                    <label for="itemUsername">Username / Email</label>
+                    <input type="text" id="itemUsername" placeholder="> USER IDENTIFIER" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="itemPassword">Password *</label>
+                    <input type="password" id="itemPassword" placeholder="> ACCESS KEY" autocomplete="new-password" required>
+                    <button type="button" class="btn btn-secondary" style="margin-top: 8px;" onclick="useGeneratedPassword()">[ USE GENERATED ]</button>
+                </div>
+                <div class="form-group">
+                    <label for="itemUrl">Website URL</label>
+                    <input type="url" id="itemUrl" placeholder="> https://target.system" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="itemNotes">Notes</label>
+                    <textarea id="itemNotes" placeholder="> ADDITIONAL DATA..." autocomplete="off"></textarea>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">[ SAVE ]</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">[ CANCEL ]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Password Modal -->
+    <div class="modal" id="viewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="viewTitle"></h3>
+                <button class="close-btn" onclick="closeViewModal()">&times;</button>
+            </div>
+            <div id="viewContent"></div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="editPassword()">[ EDIT ]</button>
+                <button class="btn btn-danger" onclick="deletePassword()">[ DELETE ]</button>
+                <button class="btn btn-secondary" onclick="closeViewModal()">[ CLOSE ]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        let currentUser = null;
+        let currentPasswordId = null;
+        let passwords = [];
+        let isRegisterMode = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            generatePassword();
+            checkSession();
+            
+            // Setup login form submission
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    login();
+                });
+            }
+        });
+
+        function checkSession() {
+            const user = sessionStorage.getItem('user');
+            if (user) {
+                currentUser = JSON.parse(user);
+                showVault();
+            }
+        }
+
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            const loginBtn = document.getElementById('loginBtn');
+            const toggleText = document.getElementById('toggleText');
+            const toggleLink = document.getElementById('toggleLink');
+            
+            if (isRegisterMode) {
+                loginBtn.textContent = '[ REGISTER ]';
+                toggleText.textContent = 'HAVE ACCOUNT?';
+                toggleLink.textContent = 'LOGIN';
+            } else {
+                loginBtn.textContent = '[ ACCESS VAULT ]';
+                toggleText.textContent = 'NEW USER?';
+                toggleLink.textContent = 'REGISTER';
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('authUsername').value;
+            const password = document.getElementById('authPassword').value;
+            
+            if (!username || !password) {
+                showAlert('authAlert', '> ERROR: USERNAME AND PASSWORD REQUIRED', 'error');
+                return;
+            }
+            
+            const endpoint = isRegisterMode ? '/register' : '/login';
+            
+            try {
+                const response = await fetch(API_URL + endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    showAlert('authAlert', `> ${data.error.toUpperCase()}`, 'error');
+                    return;
+                }
+                
+                if (isRegisterMode) {
+                    showAlert('authAlert', '> REGISTRATION SUCCESSFUL. LOGGING IN...', 'success');
+                    setTimeout(() => {
+                        isRegisterMode = false;
+                        toggleAuthMode();
+                        document.getElementById('authPassword').value = '';
+                    }, 1500);
+                } else {
+                    currentUser = {
+                        id: data.user_id,
+                        username: username,
+                        token: data.token,
+                        masterPassword: password
+                    };
+                    
+                    sessionStorage.setItem('user', JSON.stringify(currentUser));
+                    showVault();
+                }
+            } catch (error) {
+                showAlert('authAlert', '> ERROR: CONNECTION FAILED', 'error');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            passwords = [];
+            sessionStorage.removeItem('user');
+            document.getElementById('vaultContainer').classList.remove('active');
+            document.getElementById('authForm').classList.add('active');
+            document.getElementById('authUsername').value = '';
+            document.getElementById('authPassword').value = '';
+        }
+
+        async function showVault() {
+            document.getElementById('authForm').classList.remove('active');
+            document.getElementById('vaultContainer').classList.add('active');
+            await loadPasswords();
+        }
+
+        async function loadPasswords() {
+            if (!currentUser) return;
+            
+            try {
+                const response = await fetch(API_URL + '/passwords', {
+                    headers: {
+                        'X-User-ID': currentUser.id.toString()
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load passwords');
+                }
+                
+                const encryptedPasswords = await response.json();
+                
+                // Decrypt passwords client-side
+                passwords = encryptedPasswords.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    username: p.username,
+                    password: decrypt(p.encrypted_password),
+                    url: p.url,
+                    notes: p.notes,
+                    created_at: p.created_at,
+                    updated_at: p.updated_at
+                }));
+                
+                renderPasswords();
+            } catch (error) {
+                console.error('Error loading passwords:', error);
+            }
+        }
+
+        function renderPasswords(filter = '') {
+            const list = document.getElementById('passwordList');
+            const filtered = passwords.filter(p => 
+                p.name.toLowerCase().includes(filter.toLowerCase()) ||
+                (p.username && p.username.toLowerCase().includes(filter.toLowerCase())) ||
+                (p.url && p.url.toLowerCase().includes(filter.toLowerCase()))
+            );
+            
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        <h3>[ DATABASE EMPTY ]</h3>
+                        <p>> CLICK "NEW ENTRY" TO STORE FIRST CREDENTIAL</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = filtered.map(p => `
+                <div class="password-item" onclick="viewPassword(${p.id})">
+                    <div class="password-item-header">
+                        <div>
+                            <div class="password-item-title">${escapeHtml(p.name)}</div>
+                            ${p.username ? `<div class="password-item-username">${escapeHtml(p.username)}</div>` : ''}
+                        </div>
+                        <div class="password-item-actions" onclick="event.stopPropagation()">
+                            <button class="icon-btn" onclick="copyPassword(${p.id})" title="Copy password">📋</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchPasswords() {
+            const query = document.getElementById('searchInput').value;
+            renderPasswords(query);
+        }
+
+        function showAddModal() {
+            currentPasswordId = null;
+            document.getElementById('modalTitle').textContent = '[ ADD ENTRY ]';
+            document.getElementById('passwordForm').reset();
+            document.getElementById('passwordId').value = '';
+            document.getElementById('passwordModal').classList.add('active');
+            generatePassword();
+        }
+
+        function closeModal() {
+            document.getElementById('passwordModal').classList.remove('active');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('active');
+            currentPasswordId = null;
+        }
+
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('passwordId').value;
+            const password = document.getElementById('itemPassword').value;
+            const encryptedPassword = encrypt(password);
+            
+            const data = {
+                name: document.getElementById('itemName').value,
+                username: document.getElementById('itemUsername').value,
+                encrypted_password: encryptedPassword,
+                url: document.getElementById('itemUrl').value,
+                notes: document.getElementById('itemNotes').value
+            };
+            
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(`${API_URL}/passwords/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-User-ID': currentUser.id.toString()
+                        },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    response = await fetch(`${API_URL}/passwords`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-User-ID': currentUser.id.toString()
+                        },
+                        body: JSON.stringify(data)
+                    });
+                }
+                
+                if (response.ok) {
+                    await loadPasswords();
+                    closeModal();
+                }
+            } catch (error) {
+                console.error('Error saving password:', error);
+                alert('> ERROR: FAILED TO SAVE ENTRY');
+            }
+        });
+
+        let currentViewPassword = null;
+
+        function viewPassword(id) {
+            const password = passwords.find(p => p.id === id);
+            if (!password) {
+                console.error('Password not found for id:', id);
+                return;
+            }
+            
+            currentPasswordId = id;
+            currentViewPassword = password.password;
+            
+            console.log('Viewing password:', {
+                id: password.id,
+                name: password.name,
+                hasUsername: !!password.username,
+                passwordLength: password.password ? password.password.length : 0,
+                passwordValue: password.password
+            });
+            
+            document.getElementById('viewTitle').textContent = password.name;
+            
+            const content = `
+                <div style="margin-bottom: 20px;">
+                    ${password.username ? `
+                        <div style="margin-bottom: 15px;">
+                            <strong>Username:</strong><br>
+                            <div style="background: rgba(0, 0, 0, 0.5); padding: 10px; border: 1px solid #00ff41; margin-top: 5px; font-family: monospace; color: #00ff41; display: flex; justify-content: space-between; align-items: center;">
+                                <span id="usernameDisplay">${escapeHtml(password.username)}</span>
+                                <button class="icon-btn" onclick="event.stopPropagation(); copyText('username')">📋</button>
+                            </div>
+                        </div>
+                    ` : ''}
+                    <div style="margin-bottom: 15px;">
+                        <strong>Password:</strong><br>
+                        <div style="background: rgba(0, 0, 0, 0.5); padding: 10px; border: 1px solid #00ff41; margin-top: 5px; font-family: monospace; color: #00ff41; display: flex; justify-content: space-between; align-items: center;">
+                            <span id="passwordDisplay">${'•'.repeat(password.password.length)}</span>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="icon-btn" onclick="event.stopPropagation(); togglePasswordVisibility()">👁️</button>
+                                <button class="icon-btn" onclick="event.stopPropagation(); copyText('password')">📋</button>
+                            </div>
+                        </div>
+                    </div>
+                    ${password.url ? `
+                        <div style="margin-bottom: 15px;">
+                            <strong>URL:</strong><br>
+                            <div style="background: rgba(0, 0, 0, 0.5); padding: 10px; border: 1px solid #00ff41; margin-top: 5px;">
+                                <a href="${escapeHtml(password.url)}" target="_blank" style="color: #00ccff; text-decoration: none; text-shadow: 0 0 5px rgba(0, 204, 255, 0.5);">
+                                    ${escapeHtml(password.url)}
+                                </a>
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${password.notes ? `
+                        <div style="margin-bottom: 15px;">
+                            <strong>Notes:</strong><br>
+                            <div style="background: rgba(0, 0, 0, 0.5); padding: 10px; border: 1px solid #00ff41; margin-top: 5px; white-space: pre-wrap; color: #00ff41;">
+                                ${escapeHtml(password.notes)}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            document.getElementById('viewContent').innerHTML = content;
+            document.getElementById('viewModal').classList.add('active');
+        }
+
+        function togglePasswordVisibility() {
+            const display = document.getElementById('passwordDisplay');
+            if (display.textContent.includes('•')) {
+                display.textContent = currentViewPassword;
+            } else {
+                display.textContent = '•'.repeat(currentViewPassword.length);
+            }
+        }
+
+        function copyText(type) {
+            const password = passwords.find(p => p.id === currentPasswordId);
+            if (!password) {
+                alert('> ERROR: PASSWORD ENTRY NOT FOUND');
+                return;
+            }
+            
+            if (type === 'password') {
+                if (!password.password) {
+                    alert('> ERROR: NO PASSWORD TO COPY');
+                    return;
+                }
+                console.log('Copying password, length:', password.password.length);
+                copyToClipboard(password.password);
+            } else if (type === 'username') {
+                if (!password.username) {
+                    alert('> ERROR: NO USERNAME TO COPY');
+                    return;
+                }
+                console.log('Copying username:', password.username);
+                copyToClipboard(password.username);
+            }
+        }
+
+        function editPassword() {
+            const password = passwords.find(p => p.id === currentPasswordId);
+            if (!password) return;
+            
+            document.getElementById('modalTitle').textContent = '[ EDIT ENTRY ]';
+            document.getElementById('passwordId').value = password.id;
+            document.getElementById('itemName').value = password.name;
+            document.getElementById('itemUsername').value = password.username || '';
+            document.getElementById('itemPassword').value = password.password;
+            document.getElementById('itemUrl').value = password.url || '';
+            document.getElementById('itemNotes').value = password.notes || '';
+            
+            closeViewModal();
+            document.getElementById('passwordModal').classList.add('active');
+        }
+
+        async function deletePassword() {
+            if (!confirm('> CONFIRM: DELETE THIS ENTRY FROM DATABASE?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/passwords/${currentPasswordId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-User-ID': currentUser.id.toString()
+                    }
+                });
+                
+                if (response.ok) {
+                    await loadPasswords();
+                    closeViewModal();
+                }
+            } catch (error) {
+                console.error('Error deleting password:', error);
+            }
+        }
+
+        async function copyPassword(id) {
+            const password = passwords.find(p => p.id === id);
+            if (!password) return;
+            
+            await copyToClipboard(password.password);
+        }
+
+        async function copyToClipboard(text) {
+            if (!text) {
+                alert('> ERROR: NO TEXT TO COPY');
+                return;
+            }
+            
+            try {
+                // Try modern clipboard API first
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    alert('> DATA COPIED TO CLIPBOARD');
+                } else {
+                    // Fallback for older browsers
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                        alert('> DATA COPIED TO CLIPBOARD');
+                    } catch (e) {
+                        alert('> ERROR: COPY FAILED - ' + e.message);
+                    }
+                    
+                    document.body.removeChild(textarea);
+                }
+            } catch (err) {
+                console.error('Copy error:', err);
+                alert('> ERROR: COPY FAILED - ' + err.message);
+            }
+        }
+
+        function encrypt(text) {
+            if (!currentUser || !currentUser.masterPassword) return btoa(text);
+            const key = currentUser.masterPassword;
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+            }
+            return btoa(result);
+        }
+
+        function decrypt(encrypted) {
+            if (!currentUser || !currentUser.masterPassword) {
+                console.error('Decrypt error: No current user or master password');
+                return '[NO MASTER KEY]';
+            }
+            try {
+                const key = currentUser.masterPassword;
+                const decoded = atob(encrypted);
+                let result = '';
+                for (let i = 0; i < decoded.length; i++) {
+                    result += String.fromCharCode(decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+                }
+                console.log('Decrypted successfully, length:', result.length);
+                return result;
+            } catch (e) {
+                console.error('Decryption error:', e);
+                return '[Decryption Failed]';
+            }
+        }
+
+        function generatePassword() {
+            const length = parseInt(document.getElementById('passwordLength').value);
+            const uppercase = document.getElementById('includeUppercase').checked;
+            const lowercase = document.getElementById('includeLowercase').checked;
+            const numbers = document.getElementById('includeNumbers').checked;
+            const symbols = document.getElementById('includeSymbols').checked;
+            
+            let chars = '';
+            if (uppercase) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            if (lowercase) chars += 'abcdefghijklmnopqrstuvwxyz';
+            if (numbers) chars += '0123456789';
+            if (symbols) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+            
+            if (chars === '') chars = 'abcdefghijklmnopqrstuvwxyz';
+            
+            let password = '';
+            const array = new Uint8Array(length);
+            crypto.getRandomValues(array);
+            
+            for (let i = 0; i < length; i++) {
+                password += chars[array[i] % chars.length];
+            }
+            
+            document.getElementById('generatedPassword').textContent = password;
+        }
+
+        function updateLength() {
+            const value = document.getElementById('passwordLength').value;
+            document.getElementById('lengthValue').textContent = value;
+            generatePassword();
+        }
+
+        function useGeneratedPassword() {
+            const generated = document.getElementById('generatedPassword').textContent;
+            document.getElementById('itemPassword').value = generated;
+        }
+
+        function showAlert(elementId, message, type) {
+            const alertDiv = document.getElementById(elementId);
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeViewModal();
+            }
+        });
+    </script>
+</body>
+</html>
